@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import gspread
 from datetime import datetime
@@ -83,7 +84,7 @@ def run_monthly_report(request):
         data = worksheet.get_all_records()
     except Exception as e:
         print(f"Error accessing Google Sheet: {e}")
-        return {"status": "error", "message": "Failed to access sheet"}, 500
+        sys.exit(1)
 
     # --- Step C: Filter rows for next month and collect unique names ---
     unique_people = set()
@@ -182,7 +183,7 @@ def run_monthly_report(request):
 
     except SlackApiError as e:
         print(f"Error posting to Slack: {e.response['error']}")
-        return {"status": "error", "message": "Failed to post to Slack"}, 500
+        sys.exit(1)
 
 
 # To run locally for testing:
