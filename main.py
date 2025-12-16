@@ -135,8 +135,8 @@ def run_monthly_report(request):
     month_year_str = next_month.strftime("%b %Y")  # e.g., "Jan 2026"
 
     # Build the message
-    header_text = f":alarm_clock: {month_year_str} rides"
-    body_text = f"<{SPREADSHEET_URL}|College Ministry Volunteer Drivers>. Unavailable? Please find someone to swap with.\n\n{mentions_text}"
+    header_text = f":alarm_clock: {month_year_str} rides. The drivers assigned are:"
+    body_text = f"{mentions_text} \nUnavailable? Please find someone to swap with.\n<{SPREADSHEET_URL}|College Ministry Volunteer Drivers>."
     footer_text = f"This message was sent by rideminder. Please contact <@{user_id_map.get(MAINTAINER.lower())}> if I am not working"
 
     # Fallback text for notifications
