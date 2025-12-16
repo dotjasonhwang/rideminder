@@ -25,7 +25,7 @@ SOFTWARE.
 <br />
 <div align="center">
   <a href="https://github.com/dotjasonhwang/rideminder">
-    <img src="readme-assets/logo.png" alt="Logo" width="256" height="256" style="margin-bottom: 10px">
+    <img src="readme-assets/sedan.png" alt="Logo" width="256" height="256" style="margin-bottom: 10px">
   </a>
   <h1 align="center">rideminder</h1>
 
@@ -71,6 +71,7 @@ Jason Hwang<br>
 
 ## Acknowledgments
 
+- [Cars icon created by vectorsmarket15 - Flaticon][flaticon-url]
 - [othneildrew/Best-README-Template][readme-template-url]
   - For the README template
 
@@ -106,4 +107,5 @@ Jason Hwang<br>
 
 <!-- acknowledgements -->
 
+[flaticon-url]: https://www.flaticon.com/free-icons/cars
 [readme-template-url]: https://github.com/othneildrew/Best-README-Template
