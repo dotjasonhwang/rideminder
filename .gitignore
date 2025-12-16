@@ -50,7 +50,7 @@ env.bak/
 venv.bak/
 
 # IDEs
-.vscode/
+# .vscode/
 .idea/
 *.swp
 *.swo
