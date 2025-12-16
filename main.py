@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import gspread
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -118,7 +117,6 @@ def run_monthly_report(request):
 
     # --- Step D: User ID Mapping & Build Mentions ---
     user_id_map = get_user_id_map(slack_client, TARGET_CHANNEL_ID)
-
     mentions = []
     for name in sorted(unique_people):  # Sort for consistent ordering
         # Lookup the User ID (convert to lowercase for robust matching)
