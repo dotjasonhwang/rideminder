@@ -1,0 +1,37 @@
+name: Monthly Ride Reminder
+
+on:
+  schedule:
+    # Run at 9 AM UTC on the 15th of every month
+    - cron: '0 9 15 * *'
+  workflow_dispatch:  # Allows manual triggering for testing
+
+jobs:
+  send-reminder:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Create service account file
+        run: |
+          echo '${{ secrets.GOOGLE_SERVICE_ACCOUNT }}' > nlf-college-ministry-rideminder.json
+
+      - name: Run reminder script
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          TARGET_CHANNEL_ID: ${{ secrets.TARGET_CHANNEL_ID }}
+          GOOGLE_SHEET_URL: ${{ secrets.GOOGLE_SHEET_URL }}
+          SHEET_NAME: ${{ secrets.SHEET_NAME }}
+          MAINTAINER: ${{ secrets.MAINTAINER }}
+        run: python main.py

@@ -5,29 +5,46 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+from dotenv import load_dotenv
+
+# Load environment variables from .env file (for local testing)
+load_dotenv()
 
 # --- Configuration ---
 # NOTE: Set these as Environment Variables in your GCF settings!
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN")
 TARGET_CHANNEL_ID = os.environ.get("TARGET_CHANNEL_ID")
 SPREADSHEET_URL = os.environ.get("GOOGLE_SHEET_URL")
+SHEET_NAME = os.environ.get("SHEET_NAME")
 SPREADSHEET_KEY_FILE = "nlf-college-ministry-rideminder.json" # Name of the file you upload
-MAINTAINER_NAME = "jason hwang"  # Name to lookup in Slack for contact mentions
+MAINTAINER = os.environ.get("MAINTAINER")
 
 
 # --- 1. User Lookup Function ---
-def get_user_id_map(client):
-    """Fetches all users and creates a map from Display Name to User ID."""
+def get_user_id_map(client, channel_id):
+    """Fetches users in the specified channel and creates a map from Display Name to User ID."""
     try:
-        # Call the users.list endpoint (requires users:read scope)
+        # Get all members of the channel (requires channels:read or groups:read scope)
+        channel_members_response = client.conversations_members(channel=channel_id)
+        if not channel_members_response["ok"]:
+            print("Error fetching channel members")
+            return {}
+
+        member_ids = set(channel_members_response["members"])
+        print(f"Found {len(member_ids)} members in channel")
+
+        # Get all users (requires users:read scope)
         response = client.users_list()
+
         if response["ok"]:
             user_map = {}
             for user in response["members"]:
-                # Use a reliable name/email from the sheet for the lookup
-                display_name = user.get("profile", {}).get("real_name") or user.get("name")
-                if display_name:
-                    user_map[display_name.lower()] = user["id"]
+                # Only include users who are in the channel
+                if user["id"] in member_ids:
+                    # Use a reliable name/email from the sheet for the lookup
+                    display_name = user.get("profile", {}).get("real_name") or user.get("name")
+                    if display_name:
+                        user_map[display_name.lower()] = user["id"]
             return user_map
     except SlackApiError as e:
         print(f"Error fetching users: {e}")
@@ -60,7 +77,7 @@ def run_monthly_report(request):
 
         # Open the spreadsheet by URL
         spreadsheet = gc.open_by_url(SPREADSHEET_URL)
-        worksheet = spreadsheet.worksheet("Sheet1") # Change to your actual worksheet name
+        worksheet = spreadsheet.worksheet(SHEET_NAME)
 
         # Get all records as a list of dictionaries
         data = worksheet.get_all_records()
@@ -99,7 +116,7 @@ def run_monthly_report(request):
     print(f"Found {len(unique_people)} unique people for next month")
 
     # --- Step D: User ID Mapping & Build Mentions ---
-    user_id_map = get_user_id_map(slack_client)
+    user_id_map = get_user_id_map(slack_client, TARGET_CHANNEL_ID)
 
     mentions = []
     for name in sorted(unique_people):  # Sort for consistent ordering
@@ -121,7 +138,7 @@ def run_monthly_report(request):
     # Build the message
     header_text = f":alarm_clock: {month_year_str} rides"
     body_text = f"<{SPREADSHEET_URL}|College Ministry Volunteer Drivers>. Unavailable? Please find someone to swap with.\n\n{mentions_text}"
-    footer_text = f"This message was sent by rideminder. Please contact <@{user_id_map.get(MAINTAINER_NAME, 'Jason Hwang')}> if I am not working"
+    footer_text = f"This message was sent by rideminder. Please contact <@{user_id_map.get(MAINTAINER.lower())}> if I am not working"
 
     # Fallback text for notifications
     alert_message = f"{month_year_str} rides: {mentions_text}"
@@ -168,6 +185,6 @@ def run_monthly_report(request):
         return {"status": "error", "message": "Failed to post to Slack"}, 500
 
 
-# To simulate the run locally:
-# if __name__ == "__main__":
-#     run_monthly_report(None)
+# To run locally for testing:
+if __name__ == "__main__":
+    run_monthly_report(None)
